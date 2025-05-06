@@ -12,11 +12,14 @@ import {
 
 import {
     Box,
+    Button,
     Card,
     CssBaseline,
 } from '@mui/material';
 
 const MotionBox = motion(Box);
+
+const ANIMATION_DURATION = 0.5;
 
 const cardsCfg = [
     {
@@ -102,12 +105,21 @@ function AnimatedCard({
                         zIndex: 1,
                     }
             }
-            exit={{
-                opacity: 0,
-                transition: { duration: 0.6 },
-            }}
+            exit={
+                hide && !isSelected
+                    ? {
+                        opacity: 0,
+                        transition: { duration: ANIMATION_DURATION },
+                    }
+                    : isSelected
+                        ? {
+                            opacity: 0,
+                            transition: { duration: ANIMATION_DURATION },
+                        }
+                        : undefined
+            }
             transition={{
-                duration: 1.5,
+                duration: ANIMATION_DURATION * 2,
                 delay, 
             }}
             onClick={onClick}
@@ -151,7 +163,7 @@ function AnimatedCard({
                         initial={{ pathLength: 0 }}
                         animate={{ pathLength: 1 }}
                         transition={{
-                            duration: 1.6,
+                            duration: ANIMATION_DURATION,
                             delay,
                             ease: 'easeInOut',
                         }}
@@ -167,30 +179,55 @@ function App() {
     const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
     const [colorChangedEnd, setColorChangedEnd] = useState(false);
     const [hideCards, setHideCards] = useState(false);
+    const [shouldFadeOutSelectedCard, setShouldFadeOutSelectedCard] = useState(false);
+
+    const [showTitleBar, setShowTitleBar] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
+    const [selectedMenuText, setSelectedMenuText] = useState<string | null>(null);
+    const [hideMenu, setHideMenu] = useState(false);
 
     useEffect(() => {
         setShow(true);
     }, []);
 
-    const handleCardClick = (id: number) => {
+    const sleepSeconds = (seconds: number) => new Promise(
+        (resolve) => {
+            setTimeout(() => resolve(null), seconds * 1000);
+        },
+    );
+
+    const handleCardClick = async (id: number) => {
         if (selectedCardId !== null) return;
 
+        // 選中卡片開始變色
         setSelectedCardId(id);
-
-        const selectedCfg = cardsCfg.find((cfg) => cfg.id === id);
-        if (!selectedCfg) return;
-
-        const getDelay = (selectedCfg.delay ?? 0) + 1.6;
+        await sleepSeconds(1.5);
 
         // 卡片變色完成
-        setTimeout(() => {
-            setColorChangedEnd(true);
-        }, getDelay * 1000);
-
+        setColorChangedEnd(true);
         // 其他卡片淡出
-        setTimeout(() => {
-            setHideCards(true);
-        }, getDelay * 1000);
+        setHideCards(true);
+        await sleepSeconds(1.5);
+
+        // 選中卡片淡出
+        setShouldFadeOutSelectedCard(true);
+        await sleepSeconds(1);
+
+        // 顯示選單標題列
+        setShowTitleBar(true);
+        await sleepSeconds(0.5);
+      
+        setShowMenu(true);
+    };
+
+    const handleMenuSelect = async (text: string) => {
+        await sleepSeconds(0.5);
+
+        setSelectedMenuText(text);
+
+        await sleepSeconds(1);
+
+        setHideMenu(true); // 開始 menu 淡出動畫
     };
 
     return (
@@ -225,7 +262,9 @@ function App() {
                         <AnimatePresence>
                             {show && (cardsCfg.map((cfg) => {
                                 const isThisSelected = selectedCardId === cfg.id;
-                                const shouldRender = isThisSelected || !hideCards;
+                                const shouldRender = isThisSelected
+                                    ? !shouldFadeOutSelectedCard
+                                    : !hideCards;
 
                                 return (
                                     shouldRender && (
@@ -246,6 +285,119 @@ function App() {
                                 );
                             }))}
                         </AnimatePresence>
+
+                        <AnimatePresence>
+                            {showTitleBar && !hideMenu &&(
+                                <motion.div
+                                    initial={{
+                                        y: -60,
+                                        opacity: 0, 
+                                    }}
+                                    animate={{
+                                        y: 0,
+                                        opacity: 1, 
+                                    }}
+                                    exit={{
+                                        y: -60,
+                                        opacity: 0, 
+                                    }}
+                                    transition={{ duration: ANIMATION_DURATION }}
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        height: 60,
+                                        border: '1px solid #1976d2',
+                                        backgroundColor: '#fff',
+                                        borderRadius: 10,
+                                        color: '#fff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        padding: '0 24px',
+                                        fontSize: 20,
+                                        fontWeight: 'bold',
+                                        zIndex: 100,
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    {selectedMenuText && (
+                                        <motion.div
+                                            initial={{
+                                                width: 0,
+                                                opacity: 0, 
+                                            }}
+                                            animate={{
+                                                width: '100%',
+                                                opacity: 1, 
+                                            }}
+                                            transition={{ duration: ANIMATION_DURATION }}
+                                            style={{
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                color: '#1976d2',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            {selectedMenuText}
+                                        </motion.div>
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <AnimatePresence>
+                            {showMenu && !hideMenu && (
+                                <motion.div
+                                    initial={{
+                                        y: -20,
+                                        opacity: 0, 
+                                    }}
+                                    animate={{
+                                        y: 0,
+                                        opacity: 1, 
+                                    }}
+                                    exit={{
+                                        y: -20,
+                                        opacity: 0, 
+                                    }}
+                                    transition={{ duration: ANIMATION_DURATION }}
+                                    style={{
+                                        position: 'absolute',
+                                        top: 60,
+                                        left: 20,
+                                        right: 20,
+                                        padding: 16,
+                                        border: '1px solid #1976d2',
+                                        borderTop: 'none',
+                                        borderBottomRightRadius: 10,
+                                        borderBottomLeftRadius: 10,
+                                    }}
+                                >
+                                    {[
+                                        '選單 1',
+                                        '選單 2',
+                                        '選單 3',
+                                    ].map((text) => (
+                                        <Button
+                                            key={text}
+                                            variant="outlined"
+                                            sx={{
+                                                mb: 2,
+                                                width: '100%',
+                                                backgroundColor: selectedMenuText === text ? '#1976d2' : '',
+                                                color: selectedMenuText === text ? '#fff' : '#1976d2',
+                                            }}
+                                            onClick={() => handleMenuSelect(text)}
+                                        >
+                                            {text}
+                                        </Button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                     </Box>
                 </Card>
             </Box>
