@@ -1,25 +1,19 @@
-import './App.css';
-
 import {
     useEffect,
     useState,
 } from 'react';
 
-import {
-    AnimatePresence,
-    motion,
-} from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 import {
     Box,
-    Button,
     Card,
     CssBaseline,
 } from '@mui/material';
 
-const MotionBox = motion(Box);
-
-const ANIMATION_DURATION = 0.5;
+import { AnimatedCard } from './components/AnimatedCard';
+import { MenuItems } from './components/MenuItems';
+import { MenuTitleBar } from './components/MenuTitleBar';
 
 const cardsCfg = [
     {
@@ -51,128 +45,6 @@ const cardsCfg = [
         svgPath: 'M10,50 Q50,10 90,50 Q50,90 10,50 Z',
     },
 ];
-
-function AnimatedCard({
-    delay = 0,
-    top,
-    left,
-    right,
-    bottom,
-    svgPath,
-    hide,
-    isSelected = false,
-    colorChangedEnd = false,
-    onClick,
-}: {
-  delay?: number;
-  top?: number;
-  left?: number;
-  right?: number;
-  bottom?: number;
-  svgPath: string;
-  hide: boolean;
-  isSelected?: boolean;
-  colorChangedEnd?: boolean;
-  onClick?: () => void;
-}) {
-    return (
-        <MotionBox
-            initial={{
-                top: top !== undefined ? top - 50 : undefined,
-                left: left !== undefined ? left - 50 : undefined,
-                right: right !== undefined ? right - 50 : undefined,
-                bottom: bottom !== undefined ? bottom - 50 : undefined,
-                opacity: 0,
-            }}
-            animate={
-                isSelected && colorChangedEnd
-                    ? {
-                        top: '50%',
-                        left: '50%',
-                        translateX: '-50%',
-                        translateY: '-50%',
-                        opacity: 1,
-                        scale: 1.3,
-                        zIndex: 10,
-                    }
-                    : {
-                        top,
-                        left,
-                        right,
-                        bottom,
-                        opacity: hide ? 0 : 1,
-                        scale: 1,
-                        zIndex: 1,
-                    }
-            }
-            exit={
-                hide && !isSelected
-                    ? {
-                        opacity: 0,
-                        transition: { duration: ANIMATION_DURATION },
-                    }
-                    : isSelected
-                        ? {
-                            opacity: 0,
-                            transition: { duration: ANIMATION_DURATION },
-                        }
-                        : undefined
-            }
-            transition={{
-                duration: ANIMATION_DURATION * 2,
-                delay, 
-            }}
-            onClick={onClick}
-            sx={{
-                cursor: 'pointer',
-                position: 'absolute',
-                width: 140,
-                height: 180,
-            }}
-        >
-            <Card
-                variant="outlined"
-                sx={{
-                    width: '100%',
-                    height: '100%',
-                    bgcolor: '#fff',
-                    position: 'relative', 
-                }}
-            >
-                <svg
-                    viewBox="0 0 100 100"
-                    preserveAspectRatio="none"
-                    style={{
-                        position: 'absolute',
-                        width: '100%',
-                        height: '100%',
-                        top: 0,
-                        left: 0,
-                    }}
-                >
-                    <motion.path
-                        key={isSelected ? 'selected' : 'normal'}
-                        d={svgPath}
-                        fill="none"
-                        stroke={
-                            isSelected
-                                ? colorChangedEnd ? '#ff5722' : '#d2691e'
-                                : '#888'
-                        } 
-                        strokeWidth="1.5"
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{
-                            duration: ANIMATION_DURATION,
-                            delay,
-                            ease: 'easeInOut',
-                        }}
-                    />
-                </svg>
-            </Card>
-        </MotionBox>
-    );
-}
 
 function App() {
     const [show, setShow] = useState(false);
@@ -287,114 +159,19 @@ function App() {
                         </AnimatePresence>
 
                         <AnimatePresence>
-                            {showTitleBar && !hideMenu &&(
-                                <motion.div
-                                    initial={{
-                                        y: -60,
-                                        opacity: 0, 
-                                    }}
-                                    animate={{
-                                        y: 0,
-                                        opacity: 1, 
-                                    }}
-                                    exit={{
-                                        y: -60,
-                                        opacity: 0, 
-                                    }}
-                                    transition={{ duration: ANIMATION_DURATION }}
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        height: 60,
-                                        border: '1px solid #1976d2',
-                                        backgroundColor: '#fff',
-                                        borderRadius: 10,
-                                        color: '#fff',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        padding: '0 24px',
-                                        fontSize: 20,
-                                        fontWeight: 'bold',
-                                        zIndex: 100,
-                                        overflow: 'hidden',
-                                    }}
-                                >
-                                    {selectedMenuText && (
-                                        <motion.div
-                                            initial={{
-                                                width: 0,
-                                                opacity: 0, 
-                                            }}
-                                            animate={{
-                                                width: '100%',
-                                                opacity: 1, 
-                                            }}
-                                            transition={{ duration: ANIMATION_DURATION }}
-                                            style={{
-                                                whiteSpace: 'nowrap',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                color: '#1976d2',
-                                                textAlign: 'center',
-                                            }}
-                                        >
-                                            {selectedMenuText}
-                                        </motion.div>
-                                    )}
-                                </motion.div>
+                            {showTitleBar && !hideMenu && (
+                                <MenuTitleBar
+                                    selectedMenuText={selectedMenuText}
+                                />
                             )}
                         </AnimatePresence>
 
                         <AnimatePresence>
                             {showMenu && !hideMenu && (
-                                <motion.div
-                                    initial={{
-                                        y: -20,
-                                        opacity: 0, 
-                                    }}
-                                    animate={{
-                                        y: 0,
-                                        opacity: 1, 
-                                    }}
-                                    exit={{
-                                        y: -20,
-                                        opacity: 0, 
-                                    }}
-                                    transition={{ duration: ANIMATION_DURATION }}
-                                    style={{
-                                        position: 'absolute',
-                                        top: 60,
-                                        left: 20,
-                                        right: 20,
-                                        padding: 16,
-                                        border: '1px solid #1976d2',
-                                        borderTop: 'none',
-                                        borderBottomRightRadius: 10,
-                                        borderBottomLeftRadius: 10,
-                                    }}
-                                >
-                                    {[
-                                        '選單 1',
-                                        '選單 2',
-                                        '選單 3',
-                                    ].map((text) => (
-                                        <Button
-                                            key={text}
-                                            variant="outlined"
-                                            sx={{
-                                                mb: 2,
-                                                width: '100%',
-                                                backgroundColor: selectedMenuText === text ? '#1976d2' : '',
-                                                color: selectedMenuText === text ? '#fff' : '#1976d2',
-                                            }}
-                                            onClick={() => handleMenuSelect(text)}
-                                        >
-                                            {text}
-                                        </Button>
-                                    ))}
-                                </motion.div>
+                                <MenuItems
+                                    selectedMenuText={selectedMenuText}
+                                    handleMenuSelect={handleMenuSelect}
+                                />
                             )}
                         </AnimatePresence>
 
